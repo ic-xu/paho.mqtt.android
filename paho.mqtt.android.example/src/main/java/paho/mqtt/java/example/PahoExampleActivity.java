@@ -14,15 +14,20 @@
 package paho.mqtt.java.example;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
+import android.os.Handler;
+import android.os.Message;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
+
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
@@ -36,18 +41,31 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.util.ArrayList;
 
-public class PahoExampleActivity extends AppCompatActivity{
+public class PahoExampleActivity extends AppCompatActivity {
+
     private HistoryAdapter mAdapter;
 
     MqttAndroidClient mqttAndroidClient;
 
-    final String serverUri = "tcp://iot.eclipse.org:1883";
+    final String serverUri = "tcp://52.82.57.237:8084";
 
     String clientId = "ExampleAndroidClient";
-    final String subscriptionTopic = "exampleAndroidTopic";
-    final String publishTopic = "exampleAndroidPublishTopic";
+    final String subscriptionTopic = "test";
+    final String publishTopic = "test";
     final String publishMessage = "Hello World!";
 
+
+    //消息处理者,创建一个Handler的子类对象,目的是重写Handler的处理消息的方法(handleMessage())
+    private Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what){
+                case 11:
+                    addToHistory(msg.obj.toString());
+                    break;
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +74,7 @@ public class PahoExampleActivity extends AppCompatActivity{
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -107,12 +125,8 @@ public class PahoExampleActivity extends AppCompatActivity{
         MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
         mqttConnectOptions.setAutomaticReconnect(true);
         mqttConnectOptions.setCleanSession(false);
-
-
-
-
-
-
+        mqttConnectOptions.setUserName("user1");
+        mqttConnectOptions.setPassword("123456".toCharArray());
 
         try {
             //addToHistory("Connecting to " + serverUri);
@@ -170,7 +184,7 @@ public class PahoExampleActivity extends AppCompatActivity{
 
     public void subscribeToTopic(){
         try {
-            mqttAndroidClient.subscribe(subscriptionTopic, 0, null, new IMqttActionListener() {
+            mqttAndroidClient.subscribe(subscriptionTopic, 2, null, new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
                     addToHistory("Subscribed!");
@@ -187,7 +201,11 @@ public class PahoExampleActivity extends AppCompatActivity{
                 @Override
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
                     // message Arrived!
-                    System.out.println("Message: " + topic + " : " + new String(message.getPayload()));
+                    Message msg = new Message();
+                    msg.what = 11;
+                    msg.obj = "Message: " + topic + " : " + new String(message.getPayload());
+                    handler.sendMessage(msg);
+//                    System.out.println("Message: " + topic + " : " + new String(message.getPayload()));
                 }
             });
 

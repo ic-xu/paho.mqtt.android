@@ -45,7 +45,7 @@ public class Connections {
      * @param context Applications context
      */
     private Connections(Context context){
-        connections = new HashMap<String, Connection>();
+        connections = new HashMap<>();
 
         // If there is state, attempt to restore it
         persistence = new Persistence(context);

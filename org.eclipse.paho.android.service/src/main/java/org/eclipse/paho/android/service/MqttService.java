@@ -41,7 +41,8 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
-import android.support.v4.content.LocalBroadcastManager;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 /**
  * <p>
@@ -816,7 +817,7 @@ public class MqttService extends Service implements MqttTraceHandler {
 			// by requesting a wake lock - we request the minimum possible wake
 			// lock - just enough to keep the CPU running until we've finished
 			PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-			WakeLock wl = pm
+			@SuppressLint("InvalidWakeLockTag") WakeLock wl = pm
 					.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MQTT");
 			wl.acquire();
 			traceDebug(TAG,"Reconnect for Network recovery.");
